@@ -7,4 +7,5 @@ cmake-build-debug/
 *.o
 *.xml
 *.iml
+*.png
 *~
