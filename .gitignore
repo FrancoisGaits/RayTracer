@@ -1,0 +1,9 @@
+.idea/
+cmake-build-debug/
+
+*.cmake
+*.exe
+*.obj
+*.o
+*.xml
+*.iml

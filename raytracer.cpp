@@ -23,7 +23,7 @@ const float clamp_high = 7.f;
 
 const int nb_reb = 10;
 
-const float alias = 1;
+const float alias = 2;
 
 bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
   if(glm::dot(ray->dir,obj->geom.plane.normal) == 0.f) return false;
