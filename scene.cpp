@@ -30,6 +30,7 @@ Object *initTriangle(point3 a, point3 b, point3 c, Material mat) {
     ret->geom.triangle.a = a;
     ret->geom.triangle.b = b;
     ret->geom.triangle.c = c;
+    ret->geom.triangle.normal = glm::normalize(glm::cross(b - a,c - a));
     
     memcpy(&(ret->mat), &mat, sizeof(Material));
     return ret;

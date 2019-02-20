@@ -4,6 +4,7 @@
 #include "ray.h"
 #include "raytracer.h"
 #include "scene_types.h"
+#include <iostream>
 #include <stdio.h>
 
 #include <glm/gtc/epsilon.hpp>
@@ -23,7 +24,7 @@ const float clamp_high = 7.f;
 
 const int nb_reb = 10;
 
-const float alias = 3;
+const float alias = 5;
 
 bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
   if(glm::dot(ray->dir,obj->geom.plane.normal) == 0.f) return false;
@@ -140,10 +141,12 @@ bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
 
   float t = glm::dot(ac,qvec)/det;
 
+  if(t<ray->tmin || t>ray->tmax) return false;
+
   ray->tmax = t;
   intersection->position = rayAt(*ray,t);
   intersection->mat = &obj->mat;
-  intersection->normal = glm::normalize(glm::cross(ab,ac));
+  intersection->normal = obj->geom.triangle.normal;
 
   return true;
 }
@@ -304,9 +307,6 @@ color3 shade(vec3 n, vec3 v, vec3 l, color3 lc, Material *mat) {
   float VdotN = glm::dot(v,n);
   //  ret = lc * RDM_bsdf(glm::dot(l,h),glm::dot(n,h),glm::dot(v,h),LdotN,glm::dot(v,n),mat) * LdotN ; 
   ret = lc * RDM_bsdf(LdotH,NdotH,VdotH,LdotN,VdotN,mat) * LdotN; 
-//! \todo compute bsdf, return the shaded color taking into account the
-//! lightcolor
-
 
   return limit(ret,clamp_low,clamp_high);
 }
@@ -335,12 +335,10 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
       
       Ray shaderay;
       rayInit(&shaderay,intersection.position + acne_eps*l,l,0,dist);
-
       Intersection dummyinter;
       if(!intersectScene(scene,&shaderay,&dummyinter)) {
       	ret += shade(intersection.normal,-ray->dir,l,light->color,intersection.mat); //clamped by shade
       }
-      
     }
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -363,7 +361,6 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
     // ret += RDM_Fresnel(1.f,1.f,intersection.mat->IOR) * trace_ray(scene,&reflect,tree);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
   } else {
     ret = scene->skyColor;
@@ -393,7 +390,7 @@ void renderImage(Image *img, Scene *scene) {
   vec3 ray_delta_x =
       (0.5f - img->width * 0.5f) / (img->width * 0.5f) * scene->cam.xdir;
 
-  for (size_t j = 0; j < img->height; ++j) {
+  for (unsigned j = 0; j < img->height; ++j) {
 
     //~~~~~~~~~~~~~~~~~~~Affichage~~~~~~~~~~~~~~~~~~~
     if (j != 0) {
@@ -416,7 +413,7 @@ void renderImage(Image *img, Scene *scene) {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
 #pragma omp parallel for
-    for (size_t i = 0; i < img->width; ++i) {
+    for (unsigned i = 0; i < img->width; ++i) {
       color3 *ptr = getPixelPtr(img, i, j);
       color3 pix = color3{0.f};
       

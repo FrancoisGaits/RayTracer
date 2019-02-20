@@ -41,6 +41,7 @@ typedef struct geometry_s {
 	    vec3 a;
 	    vec3 b;
 	    vec3 c;
+	    vec3 normal;
         } triangle;
     };
 } Geometry;
