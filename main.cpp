@@ -273,6 +273,25 @@ Scene *initScene4() {
   return scene;
 }
 
+Scene *initScene5() {
+  Scene *scene = initScene();
+  setCamera(scene, point3(3, 1, 0), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
+            (float)WIDTH / (float)HEIGHT);
+
+  setSkyColor(scene, color3(0.1f, 0.3f, 0.5f));
+  Material mat;
+  mat.IOR = 1.3;
+  mat.roughness = 0.1;
+  mat.specularColor = color3(0.5f);
+
+  mat.diffuseColor = color3(.5f);
+
+  addObject(scene, initTriangle(point3(0, 1, 1), point3(0,4,2), point3(0,1,3), mat));
+
+  return scene;
+}
+
+
 Scene *initScene42(int i, int nb_step) {
   Scene *scene = initScene();
   double coeff = 1. - (nb_step-i)/(double)nb_step;
@@ -312,6 +331,8 @@ Scene *initScene42(int i, int nb_step) {
   return scene;
 }
 
+
+
 int main(int argc, char *argv[]) {
   printf("Welcome to the L3 IGTAI RayTracer project\n");
 
@@ -349,7 +370,9 @@ int main(int argc, char *argv[]) {
   case 4:
     scene = initScene4();
     break;
-
+  case 5:
+    scene = initScene5();
+    break;
   case 42 :
     break;
   default:
@@ -357,8 +380,9 @@ int main(int argc, char *argv[]) {
     break;
   }
 
-  int nb_step = 200;
+ 
   if(scene_id == 42) {
+    int nb_step = 200;
     for(int i=0;i<nb_step;++i) {
       scene = initScene42(i,nb_step);
       renderImage(img, scene);

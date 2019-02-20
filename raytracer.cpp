@@ -82,6 +82,74 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   return true;
 }
 
+// bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
+//   vec3 a = obj->geom.triangle.a;
+//   vec3 b = obj->geom.triangle.b;
+//   vec3 c = obj->geom.triangle.c;
+
+//   vec3 normal = glm::normalize(glm::cross((b-a),(c-a))); 
+
+//   if(glm::dot(ray->dir,normal) == 0.f) return false;
+
+//   vec3 g = vec3{ (a.x + b.x + c.x)/3.f,
+// 		 (a.y + b.y + c.y)/3.f,
+// 		 (a.z + b.z + c.z)/3.f };
+
+//   float dist = glm::length(g);               
+    
+  
+//   float t = - ( (glm::dot(ray->orig,normal) + dist) / (glm::dot(ray->dir,normal)));
+
+
+//   if(t<ray->tmin || t>ray->tmax) return false;
+
+//   vec3 p = rayAt(*ray,t);
+
+  
+  
+//   ray->tmax = t;
+//   intersection->position = p;
+//   intersection->mat = &obj->mat;
+//   intersection->normal = obj->geom.plane.normal;
+
+//   return true;
+// }
+
+bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
+  vec3 a = obj->geom.triangle.a;
+  vec3 b = obj->geom.triangle.b;
+  vec3 c = obj->geom.triangle.c;
+
+  vec3 ab = b-a;
+  vec3 ac = c-a;
+
+  vec3 pvec = glm::cross(ray->dir,ac);
+  float det = glm::dot(pvec,ab);
+
+  if(det == 0.f) return false;
+
+  vec3 tvec = ray->orig - a;
+
+  float u = glm::dot(pvec,tvec)/det;
+  if (u < 0 || u > 1) return false;
+
+  vec3 qvec = glm::cross(tvec,ab);
+
+  float v = glm::dot(ray->dir,qvec)/det;
+  if (v < 0 || u + v > 1) return false;
+
+  float t = glm::dot(ac,qvec)/det;
+
+  ray->tmax = t;
+  intersection->position = rayAt(*ray,t);
+  intersection->mat = &obj->mat;
+  intersection->normal = glm::normalize(glm::cross(ab,ac));
+
+  return true;
+}
+
+
+    
 bool intersectScene(const Scene *scene, Ray *ray, Intersection *intersection) {
 
   bool hasIntersection = false;
@@ -96,6 +164,9 @@ bool intersectScene(const Scene *scene, Ray *ray, Intersection *intersection) {
       break;
     case PLANE :
       hasIntersection = hasIntersection | intersectPlane(ray,intersection,obj);
+      break;
+    case TRIANGLE :
+      hasIntersection = hasIntersection | intersectTriangle(ray,intersection,obj);
       break;
     default :
       hasIntersection = false;
