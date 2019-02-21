@@ -1325,6 +1325,8 @@ raytracer.h
 /home/francois/Documents/C/IGTAI-RayTracer/raytracer.h
 scene_types.h
 /home/francois/Documents/C/IGTAI-RayTracer/scene_types.h
+iostream
+-
 stdio.h
 -
 glm/gtc/epsilon.hpp
