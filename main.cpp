@@ -280,13 +280,14 @@ Scene *initScene4() {
 Scene *initScene5(int i, int nb_step) {
   Scene *scene = initScene();
   float coeff = 1.f - (i-nb_step)/(float)nb_step;
+  float angle = glm::pi<float>()*2.f*coeff;
 
-  setCamera(scene, rotateY(vec3(0,0.3,0)-point3(3, 1, 0),glm::pi<float>()*2.f*coeff), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
+  setCamera(scene, rotateY(vec3(0,0.2,0)-point3(2, -1,2.5),angle), vec3(0, 0.2, 0), vec3(0, 1, 0), 60,
             (float)WIDTH / (float)HEIGHT);
   setSkyColor(scene, color3(0.1f, 0.3f, 0.5f));
   Material mat;
   mat.IOR = 1.3;
-  mat.roughness = 0.1;
+  mat.roughness = 0.01;
   mat.specularColor = color3(0.5f);
 
   // mat.diffuseColor = color3(.5f);
@@ -295,10 +296,16 @@ Scene *initScene5(int i, int nb_step) {
   mat.diffuseColor = color3(1.f, 0.1f, 0.2f);
   // addObject(scene, initSphere(point3(1, 0, 0), .25, mat));
 
-  addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(0.8,0.1,0.1),point3(0.2,0.5,0.3), mat));
-  addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(-0.1,0.2,0.3),point3(0.8,0.1,0.1), mat));
-  addObject(scene, initTriangle(point3(-0.1,0.2,0.3),point3(0.2,0.5,0.3),point3(0.8,0.1,0.1), mat));
-  addObject(scene, initTriangle(point3(-0.1,0.2,0.3),point3(0.4,0.6,0.7),point3(0.2,0.5,0.3), mat));
+  point3 a = point3(0.4,0.8,0.7);
+  point3 b = point3(0.8,0.1,0.1);
+  point3 c = point3(0.2,0.5,-0.1);
+  point3 d = point3(-0.1,0.2,0.3);
+
+  
+  addObject(scene, initTriangle( a, b, c, mat));
+  addObject(scene, initTriangle( a, d, b, mat));
+  addObject(scene, initTriangle( d, c, b, mat));
+  addObject(scene, initTriangle( d, a, c, mat));
   
   
   // mat.diffuseColor = color3(0.f, 0.5f, 0.5f);
@@ -307,8 +314,9 @@ Scene *initScene5(int i, int nb_step) {
   // mat.diffuseColor = color3(0.f, 0.f, 0.5f);
   // addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
 
-  // mat.diffuseColor = color3(0.6f);
-  // addObject(scene, initPlane(vec3(0, 1, 0), 0, mat));
+   mat.diffuseColor = color3(0.6f);
+   mat.roughness = 0.1;
+   addObject(scene, initPlane(vec3(0, 1, 0), 1, mat));
 
 
 
@@ -321,9 +329,10 @@ Scene *initScene5(int i, int nb_step) {
 
 Scene *initScene42(int i, int nb_step) {
   Scene *scene = initScene();
-  double coeff = 1. - (nb_step-i)/(double)nb_step;
-
-  setCamera(scene,point3(rotateZ(vec3(0,4,2.5) - vec3(0, 0, 0.6), glm::pi<float>()*float(coeff)*2.f)),vec3(0, 0, 0.6), vec3(0, 0, 1), 60,(float)WIDTH / (float)HEIGHT);
+  float coeff = 1. - (nb_step-i)/(float)nb_step;
+  float angle =  glm::pi<float>()*coeff*2.f;
+  
+  setCamera(scene,point3(rotateZ(vec3(0,4,2.5) - vec3(0, 0, 0.6),angle)),vec3(0, 0, 0.6), vec3(0, 0, 1), 60,(float)WIDTH / (float)HEIGHT);
 
   setSkyColor(scene, color3(0.2, 0.2, 0.7));
   Material mat;
@@ -407,7 +416,7 @@ int main(int argc, char *argv[]) {
 
  
   if(scene_id == 42) {
-    int nb_step = 60;
+    int nb_step = 20;
     for(int i=0;i<nb_step;++i) {
       scene = initScene5(i,nb_step);
       renderImage(img, scene);

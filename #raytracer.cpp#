@@ -31,9 +31,7 @@ bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
 
   float t = - ( (glm::dot(ray->orig,obj->geom.plane.normal) + obj->geom.plane.dist) / (glm::dot(ray->dir,obj->geom.plane.normal)));
 
-
   if(t<ray->tmin || t>ray->tmax) return false;
-
 
   ray->tmax = t;
   intersection->position = rayAt(*ray,t);
@@ -46,7 +44,6 @@ bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
 
 bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   vec3 dist = (ray->orig - obj->geom.sphere.center);
-  
   /* float a = glm::dot(ray->dir,ray->dir); //si pas normalise */
   float a = 1.f;
   float b = glm::dot(ray->dir,dist) * 2;
@@ -59,9 +56,7 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   float t;
 
   //if(delta>-sect_eps && delta<sect_eps) {
-    //return false;
-  
-  
+  //return false;
   if (delta == 0) {
     t = -(0.5f*b)/a;
   } else {
@@ -352,8 +347,8 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
     const vec3 h = glm::normalize(ray->dir - dir);
 
     color3 ref =  RDM_Fresnel(glm::dot(ray->dir,h),1.f,intersection.mat->IOR)
-                  * trace_ray(scene,&reflect,tree)
-                  * intersection.mat->specularColor;
+      * trace_ray(scene,&reflect,tree)
+      * intersection.mat->specularColor;
     
     ret += limit(ref,clamp_low,clamp_high/(reflect.refcont+decay_base));
     // ret += RDM_Fresnel(1.f,1.f,intersection.mat->IOR) * trace_ray(scene,&reflect,tree);
@@ -376,17 +371,17 @@ void renderImage(Image *img, Scene *scene) {
   KdTree *tree = NULL;
 
 
-//! \todo initialize KdTree
+  //! \todo initialize KdTree
 
   float delta_y = 1.f / (img->height * 0.5f);   //! one pixel size
   vec3 dy = delta_y * aspect * scene->cam.ydir; //! one pixel step
   vec3 ray_delta_y = (0.5f - img->height * 0.5f) / (img->height * 0.5f) *
-                     aspect * scene->cam.ydir;
+    aspect * scene->cam.ydir;
 
   float delta_x = 1.f / (img->width * 0.5f);
   vec3 dx = delta_x * scene->cam.xdir;
   vec3 ray_delta_x =
-      (0.5f - img->width * 0.5f) / (img->width * 0.5f) * scene->cam.xdir;
+    (0.5f - img->width * 0.5f) / (img->width * 0.5f) * scene->cam.xdir;
 
   for (unsigned j = 0; j < img->height; ++j) {
 
