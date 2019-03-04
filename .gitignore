@@ -2,6 +2,7 @@
 cmake-build-debug/
 vaisseau/
 build/**.o
+build/avancement/**.mp4
 
 *.cmake
 *.exe
