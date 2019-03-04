@@ -16,6 +16,8 @@ typedef struct ray_s {
     vec3 invdir; //! =1/dir, optimize aabb
 
   float refcont; //contribution to reflect
+
+  float currentIOR; //IOR of the current material the ray is in
   
 } Ray;
 
@@ -30,6 +32,7 @@ inline void rayInit(Ray *r, point3 o, vec3 d, float tmin=0, float tmax=100000, i
     r->sign[2] = r->dir.z>=0?0:1;
     r->invdir = 1.f/d;
     r->refcont = 1.f;
+    r->currentIOR = 1.f; //ray is supposedly in the air
 }
 
 inline point3 rayAt(const Ray r, float t) {

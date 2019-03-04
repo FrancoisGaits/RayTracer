@@ -1,4 +1,3 @@
-
 #include "image.h"
 #include "kdtree.h"
 #include "ray.h"
@@ -22,7 +21,7 @@ const float decay_base = 3.f;
 const float clamp_low = 0.f;
 const float clamp_high = 7.f;
 
-const int nb_reb = 10;
+const int nb_reb = 4;
 
 const float alias = 2;
 
@@ -83,39 +82,7 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   return true;
 }
 
-// bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
-//   vec3 a = obj->geom.triangle.a;
-//   vec3 b = obj->geom.triangle.b;
-//   vec3 c = obj->geom.triangle.c;
-
-//   vec3 normal = glm::normalize(glm::cross((b-a),(c-a))); 
-
-//   if(glm::dot(ray->dir,normal) == 0.f) return false;
-
-//   vec3 g = vec3{ (a.x + b.x + c.x)/3.f,
-// 		 (a.y + b.y + c.y)/3.f,
-// 		 (a.z + b.z + c.z)/3.f };
-
-//   float dist = glm::length(g);               
-    
-  
-//   float t = - ( (glm::dot(ray->orig,normal) + dist) / (glm::dot(ray->dir,normal)));
-
-
-//   if(t<ray->tmin || t>ray->tmax) return false;
-
-//   vec3 p = rayAt(*ray,t);
-
-  
-  
-//   ray->tmax = t;
-//   intersection->position = p;
-//   intersection->mat = &obj->mat;
-//   intersection->normal = obj->geom.plane.normal;
-
-//   return true;
-// }
-
+// from scratchapixel
 bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
   vec3 a = obj->geom.triangle.a;
   vec3 b = obj->geom.triangle.b;
@@ -129,9 +96,11 @@ bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
 
   if(det == 0.f) return false;
 
+  float invdet = 1.f/det;
+  
   vec3 tvec = ray->orig - a;
 
-  float u = glm::dot(pvec,tvec)/det;
+  float u = glm::dot(pvec,tvec)*invdet;
   if (u < 0 || u > 1) return false;
 
   vec3 qvec = glm::cross(tvec,ab);
@@ -139,7 +108,7 @@ bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
   float v = glm::dot(ray->dir,qvec)/det;
   if (v < 0 || u + v > 1) return false;
 
-  float t = glm::dot(ac,qvec)/det;
+  float t = glm::dot(ac,qvec)*invdet;
 
   if(t<ray->tmin || t>ray->tmax) return false;
 
@@ -339,7 +308,7 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
       }
     }
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+    ret += scene->ambiantLight;
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Reflect ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Ray reflect;
@@ -351,15 +320,35 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
     
     const vec3 h = glm::normalize(ray->dir - dir);
 
-    color3 ref =  RDM_Fresnel(glm::dot(ray->dir,h),1.f,intersection.mat->IOR)
+    float fresnel = RDM_Fresnel(glm::dot(ray->dir,h),ray->currentIOR,intersection.mat->IOR);
+    
+    color3 ref =  fresnel
                   * trace_ray(scene,&reflect,tree)
                   * intersection.mat->specularColor;
-    
-    ret += limit(ref,clamp_low,clamp_high/(reflect.refcont+decay_base));
+    if(!intersection.mat->transp)
+      ret += limit(ref,clamp_low,clamp_high/(reflect.refcont+decay_base));
     // ret += RDM_Fresnel(1.f,1.f,intersection.mat->IOR) * trace_ray(scene,&reflect,tree);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Refraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if(intersection.mat->transp && fresnel < 1.f) {
+      float tref = 1.f - fresnel;
+      float eta = ray->currentIOR / intersection.mat->IOR;
+      ray->currentIOR = intersection.mat->IOR; // ray entered the material
+      
+      vec3 dirRefract = glm::refract(ray->dir,intersection.normal,eta);
+      Ray refractRay;
+      rayInit(&refractRay,intersection.position + acne_eps*dirRefract*1.15f,dirRefract,0.5);
+      refractRay.depth = ray->depth + 1;
+
+      color3 refract = tref * trace_ray(scene,&refractRay,tree);
+      
+      ret += limit(refract,clamp_low,clamp_high);
+      
+    }
+    
+    
   } else {
     ret = scene->skyColor;
   }

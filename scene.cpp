@@ -52,7 +52,13 @@ void freeLight(Light *light) {
 }
 
 Scene * initScene() {
-    return new Scene;
+  Scene *scene = new Scene;
+  scene->ambiantLight = color3{0.f};
+  return scene;
+}
+
+void setAmbiantLight(Scene* scene, color3 ambiantLight) {
+  scene->ambiantLight = ambiantLight;
 }
 
 void freeScene(Scene *scene) {

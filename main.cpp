@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <glm/gtx/rotate_vector.hpp>
+#include <iostream>
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -17,35 +18,36 @@
 //#define HEIGHT 1440
 
 Material mat_lib[] = {
-    /* nickel */
-    {2.4449, 0.0681, {1.0, 0.882, 0.786}, {0.014, 0.012, 0.012}},
+  /* nickel */
+  {2.4449, 0.0681, {1.0, 0.882, 0.786}, {0.014, 0.012, 0.012}},
 
-    /* specular black phenolic */
-    {1.072, 0.0588, {1.0, 0.824, 0.945}, {0.002, 0.002, 0.003}},
+  /* specular black phenolic */
+  {1.072, 0.0588, {1.0, 0.824, 0.945}, {0.002, 0.002, 0.003}},
+  
+  /* specular blue phenolic */
+  {1.1051, 0.0568, {0.005, 0.013, 0.032}, {1.0, 0.748, 0.718}},
 
-    /* specular blue phenolic */
-    {1.1051, 0.0568, {0.005, 0.013, 0.032}, {1.0, 0.748, 0.718}},
+  /* specular green phenolic */
+  {1.1051, 0.0567, {0.006, 0.026, 0.022}, {1.0, 0.739, 0.721}},
 
-    /* specular green phenolic */
-    {1.1051, 0.0567, {0.006, 0.026, 0.022}, {1.0, 0.739, 0.721}},
+  /* specular white phenolic */
+  {1.1022, 0.0579, {0.286, 0.235, 0.128}, {1.0, 0.766, 0.762}},
 
-    /* specular white phenolic */
-    {1.1022, 0.0579, {0.286, 0.235, 0.128}, {1.0, 0.766, 0.762}},
-
-    /* marron plastic */
-    {1.0893, 0.0604, {0.202, 0.035, 0.033}, {1.0, 0.857, 0.866}},
-
-    /* purple paint */
-    {1.1382, 0.0886, {0.301, 0.034, 0.039}, {1.0, 0.992, 0.98}},
-
-    /* red specular plastic */
-    {1.0771, 0.0589, {0.26, 0.036, 0.014}, {1.0, 0.852, 1.172}},
-
-    /* green acrylic */
-    {1.1481, 0.0625, {0.016, 0.073, 0.04}, {1.0, 1.056, 1.146}},
-
-    /* blue acrylic */
-    {1.1153, 0.068, {0.012, 0.036, 0.106}, {1.0, 0.965, 1.07}}};
+  /* marron plastic */
+  {1.0893, 0.0604, {0.202, 0.035, 0.033}, {1.0, 0.857, 0.866}},
+  
+  /* purple paint */
+  {1.1382, 0.0886, {0.301, 0.034, 0.039}, {1.0, 0.992, 0.98}},
+  
+  /* red specular plastic */
+  {1.0771, 0.0589, {0.26, 0.036, 0.014}, {1.0, 0.852, 1.172}},
+  
+  /* green acrylic */
+  {1.1481, 0.0625, {0.016, 0.073, 0.04}, {1.0, 1.056, 1.146}},
+  
+  /* blue acrylic */
+  {1.1153, 0.068, {0.012, 0.036, 0.106}, {1.0, 0.965, 1.07}}
+};
 
 Scene *initScene0() {
   Scene *scene = initScene();
@@ -62,12 +64,16 @@ Scene *initScene0() {
 
   mat.diffuseColor = color3(0.5f, 0.f, 0.f);
   addObject(scene, initSphere(point3(1, 0, 0), .25, mat));
-
+ 
   addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(0.8,0.8,0.1),point3(0.2,0.5,0.3), mat));
 
-  mat.diffuseColor = color3(0.f, 0.5f, 0.5f);
-  addObject(scene, initSphere(point3(0, 1, 0), .25, mat));
-
+  
+  mat.transp = true;
+  mat.diffuseColor = color3(0.f, 0.f, 0.f);
+  mat.IOR = 2.2;
+  addObject(scene, initSphere(point3(1.6, 0.8, -0.3), .25, mat));
+  mat.transp = false;
+  
   mat.diffuseColor = color3(0.f, 0.f, 0.5f);
   addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
 
@@ -94,7 +100,7 @@ Scene *initScene1() {
   mat.roughness = 0.2;
   mat.specularColor = color3(0.4f);
   mat.diffuseColor = color3(0.6f);
-
+  
   for (int i = 0; i < 10; ++i) {
     mat.diffuseColor = color3(0.301, 0.034, 0.039);
     mat.specularColor = color3(1.0, 0.992, 0.98);
@@ -113,10 +119,11 @@ Scene *initScene1() {
   }
   mat.diffuseColor = color3(0.014, 0.012, 0.012);
   mat.specularColor = color3(1.0, 0.882, 0.786);
-  mat.IOR = 2.4449;
+  mat.IOR = 2.4449; //2.4449
   mat.roughness = 0.0681;
   addObject(scene, initSphere(point3(-3.f, 1.f, 0.f), 2., mat));
 
+  
   mat.diffuseColor = color3(0.016, 0.073, 0.04);
   mat.specularColor = color3(1.0, 1.056, 1.146);
   mat.IOR = 1.1481;
@@ -436,6 +443,8 @@ int main(int argc, char *argv[]) {
   
   printf("render scene %d\n", scene_id);
 
+  // setAmbiantLight(scene,color3(0.01f));
+ 
   renderImage(img, scene);
   freeScene(scene);
   scene = NULL;

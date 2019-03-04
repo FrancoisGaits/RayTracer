@@ -14,6 +14,7 @@ typedef struct material_s {
   float roughness; //! 0.001 - 0.01 : very smooth finish with slight imperfections. 0.1 : relatively rough. 0.3-0.7 extremely rough 
   color3 specularColor;	//! Specular "albedo"
   color3 diffuseColor;	//! Base color
+  bool transp = false;
 } Material;
 
 enum Etype {SPHERE=1, PLANE, TRIANGLE};
@@ -23,6 +24,7 @@ enum Etype {SPHERE=1, PLANE, TRIANGLE};
 Object* initSphere(point3 center, float radius, Material mat);
 Object* initPlane(vec3 normal, float d, Material mat);
 Object* initTriangle(point3 a, point3 b, point3 c, Material mat);
+
 
 
 //! release memory for the object obj
@@ -36,6 +38,9 @@ void freeLight(Light *);
 
 // allocate the momery for the scene
 Scene *initScene();
+// set an ambiant color for the scene (defaulted to color3(0.f))
+void setAmbiantLight(Scene* scene, color3 ambiantLight);
+
 void freeScene(Scene *scene);
 
 void setCamera(Scene *scene, point3 position, vec3 at, vec3 up, float fov, float aspect);
