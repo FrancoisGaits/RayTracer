@@ -459,8 +459,7 @@ int main(int argc, char *argv[]) {
   case 5:
     scene = initScene5(0,1);
     break;
-
-    case 41 :
+  case 41 :
   case 42 :
     break;
   default:
@@ -510,8 +509,6 @@ int main(int argc, char *argv[]) {
 
   printf("render scene %d\n", scene_id);
 
-  // setAmbiantLight(scene,color3(0.01f));
- 
   renderImage(img, scene);
   freeScene(scene);
   scene = NULL;

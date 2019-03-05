@@ -17,14 +17,14 @@ typedef struct material_s {
   bool transp = false;
 } Material;
 
-enum Etype {SPHERE=1, PLANE, TRIANGLE};
+enum Etype {SPHERE=1, PLANE, TRIANGLE, CYLINDER};
 
 
 //! create a new sphere structure
 Object* initSphere(point3 center, float radius, Material mat);
 Object* initPlane(vec3 normal, float d, Material mat);
 Object* initTriangle(point3 a, point3 b, point3 c, Material mat);
-
+Object *initCylinder(point3 center, vec3 direction, float radius, float length, Material mat);
 
 
 //! release memory for the object obj

@@ -25,6 +25,51 @@ const int nb_reb = 4;
 
 const float alias = 2;
 
+bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
+  float t0, t1;
+
+  float a = ray->dir.x * ray->dir.x + ray->dir.z * ray->dir.z;
+  float b = 2.f * ( ray->dir.x * ray->orig.x + ray->dir.z  * ray->orig.z);
+  float c = ray->orig.x * ray->orig.x + ray->orig.z * ray->orig.z - obj->geom.cylinder.radius;
+
+  float delta = b*b - 4.f*a*c;
+
+  if(delta < 0.f) {
+    return false;
+  }
+
+  float sqrDelta = sqrt(delta);
+
+  t0 = (-b + sqrDelta) / (2.f * a);
+  t1 = (-b - sqrDelta) / (2.f * a);
+
+  if(t0>t1) {
+    std::swap(t0,t1);
+  }
+  float y0 =  ray->orig.y + t0 * ray->dir.y;
+  float y1 =  ray->orig.y + t1 * ray->dir.y;
+
+  float lowerBound = obj->geom.cylinder.center.y;
+  float upperBound = obj->geom.cylinder.length + lowerBound;
+
+  if(y0<lowerBound) {
+    if (y1<lowerBound) {
+      return false;
+    } else {
+      float tPlan = t0 + (t1-t0) *(y0+upperBound) / (y0-y1);
+      if (tPlan < ray->tmin || tPlan > ray->tmax) {
+        return false;
+      }
+      ray->tmax = tPlan;
+      intersection->position = rayAt(*ray,tPlan);
+      intersection->mat = &obj->mat;
+      intersection->normal = vec3(0,1,0);
+    }
+  }
+  //TODO the rest (at http://woo4.me/wootracer/cylinder-intersection/)
+
+  return false;
+}
 bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
   if(glm::dot(ray->dir,obj->geom.plane.normal) == 0.f) return false;
 
@@ -139,6 +184,9 @@ bool intersectScene(const Scene *scene, Ray *ray, Intersection *intersection) {
       break;
     case TRIANGLE :
       hasIntersection |= intersectTriangle(ray,intersection,obj);
+      break;
+    case  CYLINDER:
+      hasIntersection |= intersectCylinder(ray,intersection,obj);
       break;
     default :
       hasIntersection = false;

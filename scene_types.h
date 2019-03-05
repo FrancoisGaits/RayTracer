@@ -37,19 +37,19 @@ typedef struct geometry_s {
             float dist;
         } plane;
         struct {
-	    //triangle
-	    vec3 a;
-	    vec3 b;
-	    vec3 c;
-	    vec3 normal;
+	        //triangle
+	        vec3 a;
+	        vec3 b;
+	        vec3 c;
+	        vec3 normal;
         } triangle;
-      struct {
-	//cylindre
-	point3 center;
-	float radius;
-	float length;
-	vec3 dir;
-      } cylinder;
+        struct {
+	        //cylindre
+	        point3 center;
+	        float radius;
+	        float length;
+	        vec3 dir;
+        } cylinder;
     };
 } Geometry;
 
