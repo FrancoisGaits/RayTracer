@@ -4,6 +4,7 @@ vaisseau/
 build/**.o
 build/avancement/**.mp4
 
+*#*
 *.cmake
 *.exe
 *.obj
