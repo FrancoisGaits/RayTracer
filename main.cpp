@@ -51,10 +51,19 @@ Material mat_lib[] = {
 
 Scene *initScene0() {
   Scene *scene = initScene();
-  setCamera(scene, point3(3, 1, 0), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
+  setCamera(scene, point3(5, 1, 0), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
             (float)WIDTH / (float)HEIGHT);
   setSkyColor(scene, color3(0.1f, 0.3f, 0.5f));
   Material mat;
+  Material verre;
+  Material air;
+
+  verre.IOR = 1.3;
+  verre.roughness = 0.01f;
+  verre.specularColor = color3(0.f);
+  verre.diffuseColor = color3(0.f);
+  verre.transp = true;
+  
   mat.IOR = 1.3;
   mat.roughness = 0.1;
   mat.specularColor = color3(0.5f);
@@ -66,13 +75,6 @@ Scene *initScene0() {
   addObject(scene, initSphere(point3(1, 0, 0), .25, mat));
  
   addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(0.8,0.8,0.1),point3(0.2,0.5,0.3), mat));
-
-  
-  mat.transp = true;
-  mat.diffuseColor = color3(0.f, 0.f, 0.f);
-  mat.IOR = 2.2;
-  addObject(scene, initSphere(point3(1.6, 0.8, -0.3), .25, mat));
-  mat.transp = false;
   
   mat.diffuseColor = color3(0.f, 0.f, 0.5f);
   addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
@@ -80,8 +82,10 @@ Scene *initScene0() {
   mat.diffuseColor = color3(0.6f);
   addObject(scene, initPlane(vec3(0, 1, 0), 0, mat));
 
+  setAmbiantLight(scene,color3(0.01f));
 
-
+  addObject(scene, initSphere(point3(2.2,0.35,-0.3),.35,verre));
+  
   addLight(scene, initLight(point3(10, 10, 10), color3(1, 1, 1)));
   addLight(scene, initLight(point3(4, 10, -2), color3(1, 1, 1)));
 
@@ -356,10 +360,11 @@ Scene *initScene41(int i, int nb_step) {
 
     mat.transp = true;
     mat.diffuseColor = color3(0.f, 0.f, 0.f);
-    mat.IOR = 2.2;
-    addObject(scene, initSphere(point3(1.3+(sin(coeff*glm::pi<float>()*4.f)*0.25f), 0.8+(cos(coeff*glm::pi<float>()*4.f)*0.25f), -0.5+(coeff)), .25, mat));
+    mat.IOR = 1.3;
+    addObject(scene, initSphere(point3(1.3+(sin(coeff*glm::pi<float>()*4.f)*0.25f), 0.8+(cos(coeff*glm::pi<float>()*4.f)*0.25f), -0.5+(coeff*1.25f)), .25, mat));
     mat.transp = false;
-
+    mat.IOR = 2.2;
+    
     mat.diffuseColor = color3(0.f, 0.f, 0.5f);
     addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
 

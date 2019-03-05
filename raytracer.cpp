@@ -45,7 +45,6 @@ bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
 
 bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   vec3 dist = (ray->orig - obj->geom.sphere.center);
-  
   /* float a = glm::dot(ray->dir,ray->dir); //si pas normalise */
   float a = 1.f;
   float b = glm::dot(ray->dir,dist) * 2;
@@ -67,6 +66,7 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
     t = (-b-sqrt(delta)) / (2.f*a);
     if(t<0) {
       t = (-b+sqrt(delta)) / (2.f*a);
+      intersection->inside = true;
       if(t<0) {
 	return false;
       }
@@ -78,7 +78,7 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   intersection->position = rayAt(*ray,t);
   intersection->mat = &obj->mat;
   intersection->normal = glm::normalize(intersection->position - obj->geom.sphere.center);
-  
+ 
   return true;
 }
 
@@ -105,7 +105,7 @@ bool intersectTriangle(Ray *ray, Intersection *intersection, Object *obj) {
 
   vec3 qvec = glm::cross(tvec,ab);
 
-  float v = glm::dot(ray->dir,qvec)/det;
+  float v = glm::dot(ray->dir,qvec)*invdet;
   if (v < 0 || u + v > 1) return false;
 
   float t = glm::dot(ac,qvec)*invdet;
@@ -305,10 +305,12 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
       Intersection dummyinter;
       if(!intersectScene(scene,&shaderay,&dummyinter)) {
       	ret += shade(intersection.normal,-ray->dir,l,light->color,intersection.mat); //clamped by shade
+      } else {
+	ret += scene->ambiantLight*(intersection.mat->diffuseColor/glm::pi<float>());
       }
     }
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ret += scene->ambiantLight;
+    
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Reflect ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Ray reflect;
@@ -334,12 +336,21 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Refraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if(intersection.mat->transp && fresnel < 1.f) {
       float tref = 1.f - fresnel;
-      float eta = ray->currentIOR / intersection.mat->IOR;
-      ray->currentIOR = intersection.mat->IOR; // ray entered the material
-      
-      vec3 dirRefract = glm::refract(ray->dir,intersection.normal,eta);
+      float eta;
+      vec3 dirRefract;
+      if(intersection.inside) {
+	eta = intersection.mat->IOR; //etaMat/etaAir = etaMat
+	ray->currentIOR = 1.f;
+       
+	dirRefract = glm::refract(ray->dir,-intersection.normal,eta);
+      } else {
+	eta = 1.f/intersection.mat->IOR;
+	ray->currentIOR = intersection.mat->IOR;
+
+	dirRefract = glm::refract(ray->dir,intersection.normal,eta);
+      }
       Ray refractRay;
-      rayInit(&refractRay,intersection.position + acne_eps*dirRefract*1.15f,dirRefract,0.5);
+      rayInit(&refractRay,intersection.position + acne_eps*dirRefract,dirRefract,0.1);
       refractRay.depth = ray->depth + 1;
 
       color3 refract = tref * trace_ray(scene,&refractRay,tree);
@@ -347,7 +358,6 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
       ret += limit(refract,clamp_low,clamp_high);
       
     }
-    
     
   } else {
     ret = scene->skyColor;
