@@ -41,7 +41,7 @@ Object *initCylinder(point3 center, vec3 direction, float radius, float length, 
     ret = (Object *)malloc(sizeof(Object));
     ret->geom.type = CYLINDER;
     ret->geom.cylinder.center = center;
-    ret->geom.cylinder.dir = direction;
+    ret->geom.cylinder.dir = normalize(direction);
     ret->geom.cylinder.radius = radius;
     ret->geom.cylinder.length = length;
 

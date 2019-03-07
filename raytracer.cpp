@@ -28,11 +28,34 @@ const float alias = 2;
 bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
   float t0, t1;
 
-  float a = ray->dir.x * ray->dir.x + ray->dir.z * ray->dir.z;
-  float b = 2.f * ( ray->dir.x * ray->orig.x + ray->dir.z  * ray->orig.z);
-  float c = ray->orig.x * ray->orig.x + ray->orig.z * ray->orig.z - obj->geom.cylinder.radius;
+  const float cosX = dot(obj->geom.cylinder.dir,vec3(1.f,0.f,0.f));
+  const float cosY = dot(obj->geom.cylinder.dir,vec3(0.f,1.f,0.f));
+  const float cosZ = dot(obj->geom.cylinder.dir,vec3(0.f,0.f,1.f));
+  
+  const float sinX = sqrt(1.f-cosX*cosX);
+  const float sinY = sqrt(1.f-cosY*cosY);
+  const float sinZ = sqrt(1.f-cosZ*cosZ);
 
-  float delta = b*b - 4.f*a*c;
+  // printf("sinX : %f | sinY : %f | sinZ : %f\n",sinX,sinY,sinZ);
+  
+  const float cx = obj->geom.cylinder.center.x;
+  const float cy = obj->geom.cylinder.center.y;
+  const float cz = obj->geom.cylinder.center.z;
+  
+  const float dx = ray->dir.x * sinX;
+  const float dy = ray->dir.y * sinY;
+  const float dz = ray->dir.z * sinZ;
+
+  //offsetting the ray to account the cylinder placement
+  const float ox = (ray->orig.x - cx) * sinX;
+  const float oy = (ray->orig.y - cy) * sinY;
+  const float oz = (ray->orig.z - cz) * sinZ;
+  
+  const float a = dx * dx + dz * dz + (dy * dy); 
+  const float b = 2.f * ( dx * ox + dz  * oz + (dy * oy));
+  const float c = ox * ox + oz * oz + (oy * oy) - obj->geom.cylinder.radius;
+
+  const float delta = b*b - 4.f*a*c;
 
   if(delta < 0.f) {
     return false;
@@ -46,8 +69,8 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
   if(t0>t1) {
     std::swap(t0,t1);
   }
-  float y0 =  ray->orig.y + t0 * ray->dir.y;
-  float y1 =  ray->orig.y + t1 * ray->dir.y;
+  float y0 =  ray->orig.y*cosY + t0 * ray->dir.y*cosY + ray->orig.x*cosX + t0 * ray->dir.x*cosX + ray->orig.z*cosZ + t0 * ray->dir.z*cosZ ;
+  float y1 =  ray->orig.y*cosY + t1 * ray->dir.y*cosY + ray->orig.x*cosX + t1 * ray->dir.x*cosX + ray->orig.z*cosZ + t1 * ray->dir.z*cosZ ;
 
   float lowerBound = obj->geom.cylinder.center.y;
   float upperBound = obj->geom.cylinder.length + lowerBound;
@@ -63,9 +86,48 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       ray->tmax = tPlan;
       intersection->position = rayAt(*ray,tPlan);
       intersection->mat = &obj->mat;
+      intersection->normal = vec3(0,-1,0);
+
+      return true;
+    }
+  } else if (y0>=lowerBound && y0<=upperBound) {
+    if (t0 < ray->tmin || t0 > ray->tmax) {
+      return false;
+    }
+    ray->tmax = t0;
+    intersection->position = rayAt(*ray,t0);
+    intersection->mat = &obj->mat;
+    intersection->normal = normalize(
+       vec3{
+	 intersection->position.x - cx == 0.f ?
+	   0.0001f :
+	   intersection->position.x - cx < 0 ?
+	      -intersection->position.x + cx :
+	       intersection->position.x - cx,
+
+	 0.f,
+
+	 intersection->position.z - cz});
+
+    return true;
+  } else if (y0>upperBound) {
+    if(y1>upperBound) {
+      return false;
+    }
+    else {
+      float tPlan = t0 + (t1-t0) *(y0+upperBound) / (y0-y1);
+      if (tPlan < ray->tmin || tPlan > ray->tmax) {
+        return false;
+      }
+      ray->tmax = tPlan;
+      intersection->position = rayAt(*ray,tPlan);
+      intersection->mat = &obj->mat;
       intersection->normal = vec3(0,1,0);
+
+      return true;
     }
   }
+  
   //TODO the rest (at http://woo4.me/wootracer/cylinder-intersection/)
 
   return false;
@@ -92,7 +154,7 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
   vec3 dist = (ray->orig - obj->geom.sphere.center);
   /* float a = glm::dot(ray->dir,ray->dir); //si pas normalise */
   float a = 1.f;
-  float b = glm::dot(ray->dir,dist) * 2;
+  float b = glm::dot(ray->dir,dist) * 2.f;
   float c = glm::dot(dist,dist) - (obj->geom.sphere.radius *  obj->geom.sphere.radius) ;
 
   float delta = b*b - (4*a*c);
