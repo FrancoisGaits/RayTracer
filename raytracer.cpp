@@ -87,7 +87,7 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       ray->tmax = tPlan;
       intersection->position = rayAt(*ray,tPlan);
       intersection->mat = &obj->mat;
-      intersection->normal = vec3(0,-1,0);
+      intersection->normal = vec3(-cosX,-cosY,-cosZ);
 
       return true;
     }
@@ -101,13 +101,15 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
     intersection->mat = &obj->mat;
     intersection->normal = normalize(
        vec3{
-	 intersection->position.x == 0.f ?
+	 sinX == 0.f ?
 	   0.01f :
-	   intersection->position.x,
-	 0.f,
-	 intersection->position.z == 0.f ?
+	   sinX,
+	     
+	   sinY,
+	     
+	 sinZ == 0.f ?
 	   0.01f :
-	   intersection->position.z
+	   sinZ
 	   });
 
     return true;
@@ -123,7 +125,7 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       ray->tmax = tPlan;
       intersection->position = rayAt(*ray,tPlan);
       intersection->mat = &obj->mat;
-      intersection->normal = vec3(0,1,0);
+      intersection->normal = vec3(cosX,cosY,cosZ);
 
       return true;
     }
