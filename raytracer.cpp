@@ -67,6 +67,7 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
   t1 = (-b - sqrDelta) / (2.f * a);
 
   if(t0>t1) {
+    intersection->inside = true;
     std::swap(t0,t1);
   }
   float y0 =  ray->orig.y*cosY + t0 * ray->dir.y*cosY + ray->orig.x*cosX + t0 * ray->dir.x*cosX + ray->orig.z*cosZ + t0 * ray->dir.z*cosZ ;
@@ -94,20 +95,20 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
     if (t0 < ray->tmin || t0 > ray->tmax) {
       return false;
     }
+    //TODO aled
     ray->tmax = t0;
     intersection->position = rayAt(*ray,t0);
     intersection->mat = &obj->mat;
     intersection->normal = normalize(
        vec3{
-	 intersection->position.x - cx == 0.f ?
-	   0.0001f :
-	   intersection->position.x - cx < 0 ?
-	      -intersection->position.x + cx :
-	       intersection->position.x - cx,
-
+	 intersection->position.x == 0.f ?
+	   0.01f :
+	   intersection->position.x,
 	 0.f,
-
-	 intersection->position.z - cz});
+	 intersection->position.z == 0.f ?
+	   0.01f :
+	   intersection->position.z
+	   });
 
     return true;
   } else if (y0>upperBound) {
@@ -115,7 +116,7 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       return false;
     }
     else {
-      float tPlan = t0 + (t1-t0) *(y0+upperBound) / (y0-y1);
+      float tPlan = t0 + (t1-t0) *(y0-upperBound) / (y0-y1);
       if (tPlan < ray->tmin || tPlan > ray->tmax) {
         return false;
       }

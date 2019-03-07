@@ -71,15 +71,15 @@ Scene *initScene0() {
   mat.diffuseColor = color3(0.f,.75f,0.f);
   // addObject(scene, initSphere(point3(0, 0, 0), 0.25, mat));
 
-  addObject(scene,initCylinder(point3(0,-1.5,.5),vec3(0,1,0),0.25,2,mat));
+  addObject(scene,initCylinder(point3(0,-1.25,.5),vec3(0,1,0),0.25,2,mat));
   
   mat.diffuseColor = color3(0.5f, 0.f, 0.f);
-  //addObject(scene, initSphere(point3(1, 0, 0.5), .25, mat));
+  addObject(scene, initSphere(point3(0.5, 1.1, 0.5), .25, mat));
  
   // addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(0.8,0.8,0.1),point3(0.2,0.5,0.3), mat));
   
   mat.diffuseColor = color3(0.f, 0.f, 0.5f);
-  // addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
+  addObject(scene, initSphere(point3(1, 0.5, 1), .25, mat));
 
   mat.diffuseColor = color3(0.6f);
   // addObject(scene, initPlane(vec3(0, 1, 0), 0, mat));
