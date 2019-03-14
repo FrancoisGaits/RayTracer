@@ -28,13 +28,13 @@ const float alias = 2;
 bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
   float t0, t1;
 
-  const float cosX = dot(obj->geom.cylinder.dir,vec3(1.f,0.f,0.f));
-  const float cosY = dot(obj->geom.cylinder.dir,vec3(0.f,1.f,0.f));
-  const float cosZ = dot(obj->geom.cylinder.dir,vec3(0.f,0.f,1.f));
+  const float cosX = dot(obj->geom.cylinder.dir,vec3(1.f,0.f,0.f)); //0
+  const float cosY = dot(obj->geom.cylinder.dir,vec3(0.f,1.f,0.f)); //1
+  const float cosZ = dot(obj->geom.cylinder.dir,vec3(0.f,0.f,1.f)); //0
   
-  const float sinX = sqrt(1.f-cosX*cosX);
-  const float sinY = sqrt(1.f-cosY*cosY);
-  const float sinZ = sqrt(1.f-cosZ*cosZ);
+  const float sinX = sqrt(1.f-cosX*cosX); //1
+  const float sinY = sqrt(1.f-cosY*cosY); //0
+  const float sinZ = sqrt(1.f-cosZ*cosZ); //1
 
   // printf("sinX : %f | sinY : %f | sinZ : %f\n",sinX,sinY,sinZ);
   
@@ -51,9 +51,9 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
   const float oy = (ray->orig.y - cy);// * sinY;
   const float oz = (ray->orig.z - cz);// * sinZ;
   
-  const float a = dx * dx + dz * dz;// + (dy * dy);
-  const float b = 2.f * ( dx * ox + dz  * oz);// + (dy * oy));
-  const float c = ox * ox + oz * oz + /*(oy * oy)*/ - obj->geom.cylinder.radius;
+  const float a = dx * dx * sinX + dz * dz * sinZ + (dy * dy * sinY);
+  const float b = 2.f * ( dx * ox * sinX + dz  * oz * sinZ + (dy * oy * sinY));
+  const float c = ox * ox * sinX + oz * oz * sinZ + (oy * oy * sinY) - obj->geom.cylinder.radius;
 
   const float delta = b*b - 4.f*a*c;
 
@@ -70,8 +70,8 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
     intersection->inside = true;
     std::swap(t0,t1);
   }
-  float y0 =  ray->orig.y /* * cosY  */ + t0 * ray->dir.y; //*cosY + ray->orig.x*cosX + t0 * ray->dir.x*cosX + ray->orig.z*cosZ + t0 * ray->dir.z*cosZ ;
-  float y1 =  ray->orig.y /* *cosY */ + t1 * ray->dir.y; // *cosY + ray->orig.x*cosX + t1 * ray->dir.x*cosX + ray->orig.z*cosZ + t1 * ray->dir.z*cosZ ;
+  float y0 =  ray->orig.y * cosY + t0 * ray->dir.y * cosY + ray->orig.x*cosX + t0 * ray->dir.x*cosX + ray->orig.z*cosZ + t0 * ray->dir.z*cosZ ;
+  float y1 =  ray->orig.y * cosY + t1 * ray->dir.y * cosY + ray->orig.x*cosX + t1 * ray->dir.x*cosX + ray->orig.z*cosZ + t1 * ray->dir.z*cosZ ;
 
   float lowerBound = obj->geom.cylinder.center.y;
   float upperBound = obj->geom.cylinder.length + lowerBound;
@@ -95,12 +95,13 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
     if (t0 < ray->tmin || t0 > ray->tmax) {
       return false;
     }
-    //TODO aled
-
+   
     ray->tmax = t0;
     intersection->position = rayAt(*ray,t0);
     intersection->mat = &obj->mat;
-    intersection->normal = normalize(intersection->position - (glm::dot(obj->geom.cylinder.dir,intersection->position-obj->geom.cylinder.center)*obj->geom.cylinder.dir));
+    vec3 c = intersection->position-obj->geom.cylinder.center;
+    intersection->normal = normalize(intersection->position -
+				     ( (glm::dot(obj->geom.cylinder.dir,c)*obj->geom.cylinder.length)/glm::length(c) )*obj->geom.cylinder.dir);
 
     return true;
   } else if (y0>upperBound) {
@@ -120,9 +121,6 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       return true;
     }
   }
-  
-  //TODO the rest (at http://woo4.me/wootracer/cylinder-intersection/)
-
   return false;
 }
 bool intersectPlane(Ray *ray, Intersection *intersection, Object *obj) {
@@ -158,8 +156,6 @@ bool intersectSphere(Ray *ray, Intersection *intersection, Object *obj) {
 
   //if(delta>-sect_eps && delta<sect_eps) {
     //return false;
-  
-  
   if (delta == 0) {
     t = -(0.5f*b)/a;
   } else {
@@ -373,12 +369,12 @@ color3 shade(vec3 n, vec3 v, vec3 l, color3 lc, Material *mat) {
   vec3 h = glm::normalize(v+l);
   
   float LdotN = glm::dot(l,n);
-  float LdotH = glm::dot(l,h);
-  float NdotH = glm::dot(n,h);
-  float VdotH = glm::dot(v,h);
-  float VdotN = glm::dot(v,n);
-  //  ret = lc * RDM_bsdf(glm::dot(l,h),glm::dot(n,h),glm::dot(v,h),LdotN,glm::dot(v,n),mat) * LdotN ; 
-  ret = lc * RDM_bsdf(LdotH,NdotH,VdotH,LdotN,VdotN,mat) * LdotN; 
+  // float LdotH = glm::dot(l,h);
+  // float NdotH = glm::dot(n,h);
+  // float VdotH = glm::dot(v,h);
+  // float VdotN = glm::dot(v,n);
+  ret = lc * RDM_bsdf(glm::dot(l,h),glm::dot(n,h),glm::dot(v,h),LdotN,glm::dot(v,n),mat) * LdotN ; 
+  //ret = lc * RDM_bsdf(LdotH,NdotH,VdotH,LdotN,VdotN,mat) * LdotN; 
 
   return limit(ret,clamp_low,clamp_high);
 }
@@ -410,7 +406,6 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
       	ret += shade(intersection.normal,-ray->dir,l,light->color,intersection.mat); //clamped by shade
       } else {
         ret += scene->ambiantLight*(intersection.mat->diffuseColor/glm::pi<float>());
-        printf("????????\n");
       }
     }
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

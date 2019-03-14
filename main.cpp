@@ -1,5 +1,3 @@
-#define GLM_ENABLE_EXPERIMENTAL
-
 #include "defines.h"
 #include "image.h"
 #include "ray.h"
@@ -8,88 +6,74 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glm/gtx/rotate_vector.hpp>
-#include <iostream>
 
 #define WIDTH 800
 #define HEIGHT 600
 
-//#define WIDTH 1920
-//#define HEIGHT 1440
-
 Material mat_lib[] = {
-  /* nickel */
-  {2.4449, 0.0681, {1.0, 0.882, 0.786}, {0.014, 0.012, 0.012}},
+    /* nickel */
+    {2.4449, 0.0681, {1.0, 0.882, 0.786}, {0.014, 0.012, 0.012}},
 
-  /* specular black phenolic */
-  {1.072, 0.0588, {1.0, 0.824, 0.945}, {0.002, 0.002, 0.003}},
-  
-  /* specular blue phenolic */
-  {1.1051, 0.0568, {0.005, 0.013, 0.032}, {1.0, 0.748, 0.718}},
+    /* specular black phenolic */
+    {1.072, 0.0588, {1.0, 0.824, 0.945}, {0.002, 0.002, 0.003}},
 
-  /* specular green phenolic */
-  {1.1051, 0.0567, {0.006, 0.026, 0.022}, {1.0, 0.739, 0.721}},
+    /* specular blue phenolic */
+    {1.1051, 0.0568, {0.005, 0.013, 0.032}, {1.0, 0.748, 0.718}},
 
-  /* specular white phenolic */
-  {1.1022, 0.0579, {0.286, 0.235, 0.128}, {1.0, 0.766, 0.762}},
+    /* specular green phenolic */
+    {1.1051, 0.0567, {0.006, 0.026, 0.022}, {1.0, 0.739, 0.721}},
 
-  /* marron plastic */
-  {1.0893, 0.0604, {0.202, 0.035, 0.033}, {1.0, 0.857, 0.866}},
-  
-  /* purple paint */
-  {1.1382, 0.0886, {0.301, 0.034, 0.039}, {1.0, 0.992, 0.98}},
-  
-  /* red specular plastic */
-  {1.0771, 0.0589, {0.26, 0.036, 0.014}, {1.0, 0.852, 1.172}},
-  
-  /* green acrylic */
-  {1.1481, 0.0625, {0.016, 0.073, 0.04}, {1.0, 1.056, 1.146}},
-  
-  /* blue acrylic */
-  {1.1153, 0.068, {0.012, 0.036, 0.106}, {1.0, 0.965, 1.07}}
-};
+    /* specular white phenolic */
+    {1.1022, 0.0579, {0.286, 0.235, 0.128}, {1.0, 0.766, 0.762}},
+
+    /* marron plastic */
+    {1.0893, 0.0604, {0.202, 0.035, 0.033}, {1.0, 0.857, 0.866}},
+
+    /* purple paint */
+    {1.1382, 0.0886, {0.301, 0.034, 0.039}, {1.0, 0.992, 0.98}},
+
+    /* red specular plastic */
+    {1.0771, 0.0589, {0.26, 0.036, 0.014}, {1.0, 0.852, 1.172}},
+
+    /* green acrylic */
+    {1.1481, 0.0625, {0.016, 0.073, 0.04}, {1.0, 1.056, 1.146}},
+
+    /* blue acrylic */
+    {1.1153, 0.068, {0.012, 0.036, 0.106}, {1.0, 0.965, 1.07}}};
 
 Scene *initScene0() {
   Scene *scene = initScene();
-  setCamera(scene, point3(5, 3, 0), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
+  setCamera(scene, point3(3, 1, 0), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
             (float)WIDTH / (float)HEIGHT);
   setSkyColor(scene, color3(0.1f, 0.3f, 0.5f));
   Material mat;
-  Material verre;
-  Material air;
-
-  verre.IOR = 1.3;
-  verre.roughness = 0.01f;
-  verre.specularColor = color3(0.f);
-  verre.diffuseColor = color3(0.f);
-  verre.transp = true;
-  
   mat.IOR = 1.3;
-  mat.roughness = 0.05;
-  mat.specularColor = color3(0.75f);
-
-  mat.diffuseColor = color3(0.f,.75f,0.f);
-  // addObject(scene, initSphere(point3(0, 0, 0), 0.25, mat));
-
-  addObject(scene,initCylinder(point3(0,0,1.5),vec3(0,1,0),0.25,2,mat));
+  mat.roughness = 0.1;
+  mat.specularColor = color3(0.5f);
+  
+  mat.diffuseColor = color3(.5f);
+  addObject(scene, initSphere(point3(0, 0, 0), 0.25, mat));
 
   mat.diffuseColor = color3(0.5f, 0.f, 0.f);
-  //addObject(scene, initSphere(point3(0.5, 1.1, 0.5), .25, mat));
- 
-  // addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(0.8,0.8,0.1),point3(0.2,0.5,0.3), mat));
-  
+  addObject(scene, initSphere(point3(1, 0, 0), .25, mat));
+
+  mat.diffuseColor = color3(0.f, 0.5f, 0.5f);
+  addObject(scene, initSphere(point3(0, 1, 0), .25, mat));
+
   mat.diffuseColor = color3(0.f, 0.f, 0.5f);
-  //addObject(scene, initSphere(point3(1, 0.5, 1), .25, mat));
+  addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
 
   mat.diffuseColor = color3(0.6f);
-   //addObject(scene, initPlane(vec3(0, 1, 0), 0, mat));
+  addObject(scene, initPlane(vec3(0, 1, 0), 0, mat));
 
-  setAmbiantLight(scene,color3(0.01f));
+  mat.diffuseColor = color3(0.05f,0.1f,0.6f);
+  addObject(scene, initCylinder(point3(0.5f,0.f,.5f),vec3(0,1,0),.02f,.5f,mat));
 
-  // addObject(scene, initSphere(point3(2.2,0.35,-0.3),.35,verre));
+  mat.diffuseColor = color3(0.1f,0.5f,0.2f);
+  addObject(scene, initTriangle(point3(0.7f,0.4f,0.7f),point3(0.7f,0.6f,0.4f),point3(0.5f,0.6f,0.8f),mat));
   
   addLight(scene, initLight(point3(10, 10, 10), color3(1, 1, 1)));
-  //addLight(scene, initLight(point3(4, 10, -2), color3(1, 1, 1)));
+  addLight(scene, initLight(point3(4, 10, -2), color3(1, 1, 1)));
 
   return scene;
 }
@@ -106,7 +90,7 @@ Scene *initScene1() {
   mat.roughness = 0.2;
   mat.specularColor = color3(0.4f);
   mat.diffuseColor = color3(0.6f);
-  
+
   for (int i = 0; i < 10; ++i) {
     mat.diffuseColor = color3(0.301, 0.034, 0.039);
     mat.specularColor = color3(1.0, 0.992, 0.98);
@@ -125,11 +109,10 @@ Scene *initScene1() {
   }
   mat.diffuseColor = color3(0.014, 0.012, 0.012);
   mat.specularColor = color3(1.0, 0.882, 0.786);
-  mat.IOR = 2.4449; //2.4449
+  mat.IOR = 2.4449;
   mat.roughness = 0.0681;
   addObject(scene, initSphere(point3(-3.f, 1.f, 0.f), 2., mat));
 
-  
   mat.diffuseColor = color3(0.016, 0.073, 0.04);
   mat.specularColor = color3(1.0, 1.056, 1.146);
   mat.IOR = 1.1481;
@@ -178,7 +161,7 @@ Scene *initScene2() {
 
 Scene *initScene3() {
   Scene *scene = initScene();
-  setCamera(scene, point3(/*8.5, 4.8, 5.5*/4.5,.8,4.5), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
+  setCamera(scene, point3(4.5, .8, 4.5), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
             (float)WIDTH / (float)HEIGHT);
   setSkyColor(scene, color3(0.2, 0.2, 0.7));
   Material mat;
@@ -290,136 +273,6 @@ Scene *initScene4() {
   return scene;
 }
 
-Scene *initScene5(int i, int nb_step) {
-  Scene *scene = initScene();
-  float coeff = 1.f - (i-nb_step)/(float)nb_step;
-  float angle = glm::pi<float>()*2.f*coeff;
-
-  setCamera(scene, rotateY(vec3(0,0.2,0)-point3(2, -1,2.5),angle), vec3(0, 0.2, 0), vec3(0, 1, 0), 60,
-            (float)WIDTH / (float)HEIGHT);
-  setSkyColor(scene, color3(0.1f, 0.3f, 0.5f));
-  Material mat;
-  mat.IOR = 1.3;
-  mat.roughness = 0.01;
-  mat.specularColor = color3(0.5f);
-
-  // mat.diffuseColor = color3(.5f);
-  // addObject(scene, initSphere(point3(0, 0, 0), 0.25, mat));
-
-  mat.diffuseColor = color3(1.f, 0.1f, 0.2f);
-  // addObject(scene, initSphere(point3(1, 0, 0), .25, mat));
-
-  point3 a = point3(0.4,0.8,0.7);
-  point3 b = point3(0.8,0.1,0.1);
-  point3 c = point3(0.2,0.5,-0.1);
-  point3 d = point3(-0.1,0.2,0.3);
-
-  
-  addObject(scene, initTriangle( a, b, c, mat));
-  addObject(scene, initTriangle( a, d, b, mat));
-  addObject(scene, initTriangle( d, c, b, mat));
-  addObject(scene, initTriangle( d, a, c, mat));
-  
-  
-  // mat.diffuseColor = color3(0.f, 0.5f, 0.5f);
-  // addObject(scene, initSphere(point3(0, 1, 0), .25, mat));
-
-  // mat.diffuseColor = color3(0.f, 0.f, 0.5f);
-  // addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
-
-   mat.diffuseColor = color3(0.6f);
-   mat.roughness = 0.1;
-   addObject(scene, initPlane(vec3(0, 1, 0), 1, mat));
-
-
-
-  addLight(scene, initLight(point3(10, 10, 10), color3(1, 1, 1)));
-  addLight(scene, initLight(point3(4, 10, -2), color3(1, 1, 1)));
-
-  return scene;
-}
-
-Scene *initScene41(int i, int nb_step) {
-    float coeff = 1.f - (nb_step-i)/(float)nb_step;
-
-    Scene *scene = initScene();
-    setCamera(scene, point3(3, 1, 0), vec3(0, 0.3, 0), vec3(0, 1, 0), 60,
-              (float)WIDTH / (float)HEIGHT);
-    setSkyColor(scene, color3(0.1f, 0.3f, 0.5f));
-    Material mat;
-    mat.IOR = 1.3;
-    mat.roughness = 0.1;
-    mat.specularColor = color3(0.5f);
-
-    mat.diffuseColor = color3(.5f);
-    addObject(scene, initSphere(point3(0, 0, 0), 0.25, mat));
-
-    mat.diffuseColor = color3(0.5f, 0.f, 0.f);
-    addObject(scene, initSphere(point3(1, 0, 0), .25, mat));
-
-    addObject(scene, initTriangle(point3(0.4,0.6,0.7),point3(0.8,0.8,0.1),point3(0.2,0.5,0.3), mat));
-
-
-    mat.transp = true;
-    mat.diffuseColor = color3(0.f, 0.f, 0.f);
-    mat.IOR = 1.3;
-    addObject(scene, initSphere(point3(1.3+(sin(coeff*glm::pi<float>()*4.f)*0.25f), 0.8+(cos(coeff*glm::pi<float>()*4.f)*0.25f), -0.5+(coeff*1.25f)), .25, mat));
-    mat.transp = false;
-    mat.IOR = 2.2;
-    
-    mat.diffuseColor = color3(0.f, 0.f, 0.5f);
-    addObject(scene, initSphere(point3(0, 0, 1), .25, mat));
-
-    mat.diffuseColor = color3(0.6f);
-    addObject(scene, initPlane(vec3(0, 1, 0), 0, mat));
-
-
-
-    addLight(scene, initLight(point3(10, 10, 10), color3(1, 1, 1)));
-    addLight(scene, initLight(point3(4, 10, -2), color3(1, 1, 1)));
-
-    return scene;
-}
-
-Scene *initScene42(int i, int nb_step) {
-  Scene *scene = initScene();
-  float coeff = 1.f - (nb_step-i)/(float)nb_step;
-  float angle =  glm::pi<float>()*coeff*2.f;
-  
-  setCamera(scene,point3(rotateZ(vec3(0,4,2.5) - vec3(0, 0, 0.6),angle)),vec3(0, 0, 0.6), vec3(0, 0, 1), 60,(float)WIDTH / (float)HEIGHT);
-
-  setSkyColor(scene, color3(0.2, 0.2, 0.7));
-  Material mat;
-  mat.diffuseColor = color3(0.014, 0.012, 0.012);
-  mat.specularColor = color3(1.0, 0.882, 0.786);
-  mat.IOR = 2.4449;
-  mat.roughness = 0.0681;
-
-  mat.diffuseColor = color3(0.05, 0.05, 0.05);
-  mat.specularColor = color3(0.95);
-  mat.IOR = 1.1022;
-  mat.roughness = 0.0579;
-
-  addObject(scene, initPlane(vec3(0, 0, 1), 0, mat));
-
-  mat.diffuseColor = color3(0.005, 0.013, 0.032);
-  mat.specularColor = color3(1.0, 0.748, 0.718);
-  for (int i = 0; i < 4; ++i) {
-    mat.IOR = 1.1051 + (-0.1 + float(i) / 3.f * 0.4);
-    for (int j = 0; j < 10; ++j) {
-      mat.roughness = 0.0568 + (-0.1 + float(j) / 9.f * 0.3);
-      addObject(scene, initSphere(point3(-1.5 + float(j) / 9.f * 3.f, 0,
-                                         0.4 + float(i) * 0.4f),
-                                  .15, mat));
-    }
-  }
-  addLight(scene, initLight(point3(-20, 5, 10), color3(30, 30, 30)));
-  addLight(scene, initLight(point3(10, 10, 10), color3(30, 30, 30)));
-  addLight(scene, initLight(point3(50, -100, 10), color3(1, 0.7, 2)));
-  return scene;
-}
-
-
 
 int main(int argc, char *argv[]) {
   printf("Welcome to the L3 IGTAI RayTracer project\n");
@@ -458,56 +311,11 @@ int main(int argc, char *argv[]) {
   case 4:
     scene = initScene4();
     break;
-  case 5:
-    scene = initScene5(0,1);
-    break;
-  case 41 :
-  case 42 :
-    break;
+
   default:
     scene = initScene0();
     break;
   }
-
- 
-  if(scene_id == 42) {
-    int nb_step = 20;
-    for(int i=0;i<nb_step;++i) {
-      scene = initScene5(i,nb_step);
-      renderImage(img, scene);
-      freeScene(scene);
-      scene = NULL;
-      sprintf(basename,"cam%03d",i+1);
-      printf("save image to %s\n", basename);
-      saveImage(img, basename);
-    }
-
-    freeImage(img);
-    img = NULL;
-    printf("done. Goodbye\n");
-
-    return 0;
-  }
-  if(scene_id == 41) {
-    int nb_step = 60;
-    for(int i=0;i<nb_step;++i) {
-      scene = initScene41(i,nb_step);
-      renderImage(img, scene);
-      freeScene(scene);
-      scene = NULL;
-      sprintf(basename,"ver%03d",i+1);
-      printf("save image to %s\n", basename);
-      saveImage(img, basename);
-    }
-
-    freeImage(img);
-    img = NULL;
-    printf("done. Goodbye\n");
-
-    return 0;
-  }
-
-
 
   printf("render scene %d\n", scene_id);
 
