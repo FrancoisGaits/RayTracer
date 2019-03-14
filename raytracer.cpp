@@ -42,18 +42,18 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
   const float cy = obj->geom.cylinder.center.y;
   const float cz = obj->geom.cylinder.center.z;
   
-  const float dx = ray->dir.x * sinX;
-  const float dy = ray->dir.y * sinY;
-  const float dz = ray->dir.z * sinZ;
+  const float dx = ray->dir.x;// * sinX;
+  const float dy = ray->dir.y;// * sinY;
+  const float dz = ray->dir.z;// * sinZ;
 
   //offsetting the ray to account the cylinder placement
-  const float ox = (ray->orig.x - cx) * sinX;
-  const float oy = (ray->orig.y - cy) * sinY;
-  const float oz = (ray->orig.z - cz) * sinZ;
+  const float ox = (ray->orig.x - cx);// * sinX;
+  const float oy = (ray->orig.y - cy);// * sinY;
+  const float oz = (ray->orig.z - cz);// * sinZ;
   
-  const float a = dx * dx + dz * dz + (dy * dy); 
-  const float b = 2.f * ( dx * ox + dz  * oz + (dy * oy));
-  const float c = ox * ox + oz * oz + (oy * oy) - obj->geom.cylinder.radius;
+  const float a = dx * dx + dz * dz;// + (dy * dy);
+  const float b = 2.f * ( dx * ox + dz  * oz);// + (dy * oy));
+  const float c = ox * ox + oz * oz + /*(oy * oy)*/ - obj->geom.cylinder.radius;
 
   const float delta = b*b - 4.f*a*c;
 
@@ -70,8 +70,8 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
     intersection->inside = true;
     std::swap(t0,t1);
   }
-  float y0 =  ray->orig.y*cosY + t0 * ray->dir.y*cosY + ray->orig.x*cosX + t0 * ray->dir.x*cosX + ray->orig.z*cosZ + t0 * ray->dir.z*cosZ ;
-  float y1 =  ray->orig.y*cosY + t1 * ray->dir.y*cosY + ray->orig.x*cosX + t1 * ray->dir.x*cosX + ray->orig.z*cosZ + t1 * ray->dir.z*cosZ ;
+  float y0 =  ray->orig.y /* * cosY  */ + t0 * ray->dir.y; //*cosY + ray->orig.x*cosX + t0 * ray->dir.x*cosX + ray->orig.z*cosZ + t0 * ray->dir.z*cosZ ;
+  float y1 =  ray->orig.y /* *cosY */ + t1 * ray->dir.y; // *cosY + ray->orig.x*cosX + t1 * ray->dir.x*cosX + ray->orig.z*cosZ + t1 * ray->dir.z*cosZ ;
 
   float lowerBound = obj->geom.cylinder.center.y;
   float upperBound = obj->geom.cylinder.length + lowerBound;
@@ -87,7 +87,7 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       ray->tmax = tPlan;
       intersection->position = rayAt(*ray,tPlan);
       intersection->mat = &obj->mat;
-      intersection->normal = vec3(-cosX,-cosY,-cosZ);
+      intersection->normal = -obj->geom.cylinder.dir;
 
       return true;
     }
@@ -96,21 +96,11 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       return false;
     }
     //TODO aled
+
     ray->tmax = t0;
     intersection->position = rayAt(*ray,t0);
     intersection->mat = &obj->mat;
-    intersection->normal = normalize(
-       vec3{
-	 sinX == 0.f ?
-	   0.01f :
-	   sinX,
-	     
-	   sinY,
-	     
-	 sinZ == 0.f ?
-	   0.01f :
-	   sinZ
-	   });
+    intersection->normal = normalize(intersection->position - (glm::dot(obj->geom.cylinder.dir,intersection->position-obj->geom.cylinder.center)*obj->geom.cylinder.dir));
 
     return true;
   } else if (y0>upperBound) {
@@ -125,7 +115,7 @@ bool intersectCylinder(Ray *ray, Intersection *intersection, Object *obj) {
       ray->tmax = tPlan;
       intersection->position = rayAt(*ray,tPlan);
       intersection->mat = &obj->mat;
-      intersection->normal = vec3(cosX,cosY,cosZ);
+      intersection->normal = obj->geom.cylinder.dir;
 
       return true;
     }
@@ -419,7 +409,8 @@ color3 trace_ray(Scene *scene, Ray *ray, KdTree *tree) {
       if(!intersectScene(scene,&shaderay,&dummyinter)) {
       	ret += shade(intersection.normal,-ray->dir,l,light->color,intersection.mat); //clamped by shade
       } else {
-	ret += scene->ambiantLight*(intersection.mat->diffuseColor/glm::pi<float>());
+        ret += scene->ambiantLight*(intersection.mat->diffuseColor/glm::pi<float>());
+        printf("????????\n");
       }
     }
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
